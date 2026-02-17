@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>FormBot — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="dashboard-page">
+
+  <div class="grid-bg"></div>
+  <div class="scan-line"></div>
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon small">
+        <svg viewBox="0 0 48 48" fill="none">
+          <rect x="6" y="6" width="36" height="36" rx="6" stroke="var(--accent)" stroke-width="2"/>
+          <path d="M14 18h20M14 24h14M14 30h8" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="36" cy="30" r="5" fill="var(--accent)" opacity="0.9"/>
+          <path d="M34 30l1.5 1.5L38 28" stroke="#0a0a0f" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span>FORMBOT</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="#config-section" class="nav-item active">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M4.93 19.07l1.41-1.41M19.07 19.07l-1.41-1.41M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+        <span>ตั้งค่า</span>
+      </a>
+      <a href="#log-section" class="nav-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span>Log</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar">{{ user[0].upper() }}</div>
+        <div class="user-info">
+          <span class="user-name">{{ user }}</span>
+          <span class="user-role">Operator</span>
+        </div>
+      </div>
+      <a href="{{ url_for('logout') }}" class="btn-logout" title="Logout">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main-content">
+
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h2 class="page-title">Bot Control Panel</h2>
+        <span class="page-subtitle">Google Form Automation</span>
+      </div>
+      <div class="topbar-right">
+        <div class="status-indicator" id="globalStatus">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusText">IDLE</span>
+        </div>
+        <div class="progress-mini" id="progressWrap" style="display:none">
+          <div class="progress-bar-mini" id="progressBarMini"></div>
+          <span id="progressLabel">0/0</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-container inline">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">
+              <span class="flash-icon">{% if category == 'success' %}✓{% elif category == 'error' %}✗{% else %}ℹ{% endif %}</span>
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- ===== CONFIG FORM ===== -->
+    <section class="card config-card" id="config-section">
+      <div class="card-header">
+        <div class="header-dot"></div>
+        <div class="header-dot dot-yellow"></div>
+        <div class="header-dot dot-green"></div>
+        <span class="card-title">// ตั้งค่าการรันบอท</span>
+      </div>
+
+      <div class="config-grid">
+
+        <!-- URL -->
+        <div class="form-group full-width">
+          <label><span class="label-prefix">$</span> GOOGLE FORM URL</label>
+          <div class="input-wrapper">
+            <span class="input-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            </span>
+            <input type="url" id="url" placeholder="https://docs.google.com/forms/..." />
+          </div>
+        </div>
+
+        <!-- Mode + Speed -->
+        <div class="form-group">
+          <label><span class="label-prefix">$</span> โหมดการทำงาน</label>
+          <div class="select-wrapper">
+            <select id="mode">
+              <option value="random">🎲 Auto-Random (สุ่มทุกหน้า)</option>
+              <option value="exact">🤖 Copy Exact (ก๊อปปี้ทุกหน้า)</option>
+              <option value="mix">🍹 Mix Mode (ทำเองบางหน้า + สุ่ม)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label><span class="label-prefix">$</span> ความเร็ว</label>
+          <div class="radio-group">
+            <label class="radio-card">
+              <input type="radio" name="speed" value="fast" checked>
+              <span class="radio-btn">
+                <span class="radio-icon">🚀</span>
+                <span class="radio-label">Fast Mode</span>
+                <span class="radio-desc">เต็มสปีด</span>
+              </span>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="speed" value="human">
+              <span class="radio-btn">
+                <span class="radio-icon">👤</span>
+                <span class="radio-label">Human Mode</span>
+                <span class="radio-desc">ช้า ปลอดภัย</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Rounds + Dist -->
+        <div class="form-group">
+          <label><span class="label-prefix">$</span> จำนวนรอบ</label>
+          <div class="input-wrapper">
+            <span class="input-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            </span>
+            <input type="number" id="rounds" value="1" min="1" max="999" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label><span class="label-prefix">$</span> Distribution Mode</label>
+          <div class="select-wrapper">
+            <select id="dist_mode">
+              <option value="1">🎲 Equal (เท่ากัน)</option>
+              <option value="2">📊 Skewed (เน้นข้อบน)</option>
+              <option value="3">📈 Heavy (เน้นข้อบนมาก)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Manual Pages -->
+        <div class="form-group" id="manual_pages_group" style="display:none">
+          <label><span class="label-prefix">$</span> หน้าที่ทำเอง (Mix Mode)</label>
+          <div class="input-wrapper">
+            <input type="text" id="manual_pages" placeholder="เช่น 1+3+7" />
+          </div>
+        </div>
+
+        <!-- Text Pool (ข้อเขียน) -->
+        <div class="form-group full-width">
+          <label><span class="label-prefix">$</span> ✍️ คำตอบข้อเขียน (Text Pool)</label>
+          <div class="input-wrapper">
+            <input type="text" id="text_pool_raw" placeholder="ใช้ + คั่น เช่น ดีมาก+โอเค+พอใจ+ดี (บอทจะสุ่มใส่อัตโนมัติ)" />
+          </div>
+          <p class="field-hint">⚠️ ถ้าฟอร์มมีข้อเขียน ต้องใส่ค่าตรงนี้ไม่งั้นบอทจะข้ามไป</p>
+        </div>
+
+        <!-- Forbidden Words -->
+        <div class="form-group">
+          <label><span class="label-prefix">$</span> 🚫 คำต้องห้าม</label>
+          <div class="input-wrapper">
+            <input type="text" id="forbidden_words" placeholder="ใช้ + คั่น เช่น ไม่เห็นด้วย+แย่มาก" />
+          </div>
+        </div>
+
+        <!-- Weight Map -->
+        <div class="form-group">
+          <label><span class="label-prefix">$</span> ⚖️ Weight Map</label>
+          <div class="input-wrapper">
+            <textarea id="weight_map_raw" rows="3" placeholder="ตัวอย่าง (1 ตัวเลือกต่อบรรทัด)&#10;5: 0:0:10:30:60&#10;4: 5:20:40:35"></textarea>
+          </div>
+          <p class="field-hint">รูปแบบ: จำนวนตัวเลือก: น้ำหนัก1:น้ำหนัก2:...</p>
+        </div>
+
+        <!-- Headless -->
+        <div class="form-group">
+          <label><span class="label-prefix">$</span> โหมดเบราว์เซอร์</label>
+          <div class="toggle-group">
+            <label class="toggle-switch">
+              <input type="checkbox" id="headless" checked>
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="toggle-label">Headless (ไม่เปิดหน้าจอ)</span>
+          </div>
+        </div>
+
+        <!-- Auto Start -->
+        <div class="form-group">
+          <label><span class="label-prefix">$</span> รอบแรก</label>
+          <div class="toggle-group">
+            <label class="toggle-switch">
+              <input type="checkbox" id="auto_start" checked>
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="toggle-label">บอท Auto (ไม่ต้องทำเอง)</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-bar">
+        <button class="btn-run" id="btnStart" onclick="startBot()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span>START BOT</span>
+        </button>
+        <button class="btn-stop" id="btnStop" onclick="stopBot()" style="display:none">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+          <span>STOP</span>
+        </button>
+        <button class="btn-clear" onclick="clearLogs()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+          ล้าง Log
+        </button>
+      </div>
+    </section>
+
+    <!-- ===== LOG TERMINAL ===== -->
+    <section class="card log-card" id="log-section">
+      <div class="card-header">
+        <div class="header-dot"></div>
+        <div class="header-dot dot-yellow"></div>
+        <div class="header-dot dot-green"></div>
+        <span class="card-title">// Console Output</span>
+        <span class="log-live" id="liveBadge" style="display:none">● LIVE</span>
+      </div>
+
+      <div class="log-terminal" id="logTerminal">
+        <div class="log-placeholder">
+          <span class="placeholder-icon">⌬</span>
+          <span>รอคำสั่ง... กด START BOT เพื่อเริ่มต้น</span>
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="progress-section" id="progressSection" style="display:none">
+        <div class="progress-label-row">
+          <span>ความคืบหน้า</span>
+          <span id="progressText">0 / 0</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+
+      <!-- Console Input Bar (แสดงเมื่อบอทรอคำตอบ) -->
+      <div id="consoleInputBar" class="console-input-bar" style="display:none">
+        <div class="console-input-question" id="consoleQuestion"></div>
+        <div class="console-input-row">
+          <span class="console-prompt">❯</span>
+          <input
+            type="text"
+            id="consoleInput"
+            class="console-input-field"
+            placeholder=""
+            autocomplete="off"
+          />
+          <button class="console-send-btn" id="consoleSendBtn" onclick="handleConsoleEnter()">ส่ง ↵</button>
+        </div>
+        <div class="console-hint" id="consoleHint"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== SCRIPTS ===== -->
+  <script>
+    let logOffset = 0;
+    let pollInterval = null;
+    // Queue of pending text-input questions waiting for user answer
+    let pendingQueue = [];
+    let currentPending = null;
+
+    // Show/hide manual pages field
+    document.getElementById('mode').addEventListener('change', function() {
+      document.getElementById('manual_pages_group').style.display =
+        this.value === 'mix' ? 'block' : 'none';
+    });
+
+    // Enter key in console input = send
+    document.getElementById('consoleInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') handleConsoleEnter();
+    });
+
+    // =====================
+    // Config
+    // =====================
+    function getConfig() {
+      return {
+        url: document.getElementById('url').value.trim(),
+        mode: document.getElementById('mode').value,
+        speed_mode: document.querySelector('input[name="speed"]:checked').value,
+        rounds: parseInt(document.getElementById('rounds').value) || 1,
+        dist_mode: parseInt(document.getElementById('dist_mode').value),
+        forbidden_words: document.getElementById('forbidden_words').value,
+        weight_map_raw: document.getElementById('weight_map_raw').value,
+        manual_pages: document.getElementById('manual_pages').value,
+        headless: document.getElementById('headless').checked,
+        auto_start_first_round: document.getElementById('auto_start').checked,
+      };
+    }
+
+    // =====================
+    // Log
+    // =====================
+    function appendLog(msg, cls) {
+      const terminal = document.getElementById('logTerminal');
+      const placeholder = terminal.querySelector('.log-placeholder');
+      if (placeholder) placeholder.remove();
+
+      const line = document.createElement('div');
+      line.className = 'log-line';
+
+      if (!cls) {
+        if (msg.includes('✅') || msg.includes('เรียบร้อย') || msg.includes('สำเร็จ')) cls = 'log-success';
+        else if (msg.includes('❌') || msg.includes('Error') || msg.includes('⚠️')) cls = 'log-error';
+        else if (msg.includes('>>>') || msg.includes('🎓') || msg.includes('🚀')) cls = 'log-highlight';
+        else if (msg.includes('☕') || msg.includes('⏳') || msg.includes('▶️')) cls = 'log-info';
+        else if (msg.includes('🚫')) cls = 'log-warn';
+        else if (msg.includes('✍️') || msg.includes('⏸️') || msg.includes('👉')) cls = 'log-ask';
+      }
+
+      line.classList.add(cls || 'log-default');
+      line.textContent = msg;
+      terminal.appendChild(line);
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    // =====================
+    // Poll
+    // =====================
+    function pollLogs() {
+      fetch(`/api/bot/logs?offset=${logOffset}`)
+        .then(r => r.json())
+        .then(data => {
+          data.logs.forEach(l => appendLog(l));
+          logOffset = data.total;
+
+          const running  = data.running;
+          const paused   = data.paused;
+          const pending  = data.pending_inputs || [];
+          const completed = data.completed;
+          const total    = data.total_rounds;
+
+          // Status
+          const dot = document.getElementById('statusDot');
+          const statusText = document.getElementById('statusText');
+          dot.className = 'status-dot ' + (paused ? 'paused' : running ? 'active' : '');
+          statusText.textContent = paused ? 'WAITING INPUT'
+            : running ? 'RUNNING'
+            : (completed >= total && total > 0 ? 'DONE' : 'IDLE');
+
+          // Progress
+          if (total > 0) {
+            document.getElementById('progressSection').style.display = 'block';
+            document.getElementById('progressWrap').style.display = 'flex';
+            const pct = Math.round((completed / total) * 100);
+            document.getElementById('progressFill').style.width = pct + '%';
+            document.getElementById('progressText').textContent = `${completed} / ${total} รอบ`;
+            document.getElementById('progressLabel').textContent = `${completed}/${total}`;
+            document.getElementById('progressBarMini').style.width = pct + '%';
+          }
+
+          // Buttons
+          document.getElementById('btnStart').style.display = running ? 'none' : 'flex';
+          document.getElementById('btnStop').style.display = running ? 'flex' : 'none';
+          document.getElementById('liveBadge').style.display = running ? 'inline-flex' : 'none';
+
+          // Handle paused + pending questions
+          if (paused && pending.length > 0) {
+            // Load into queue if not already loaded
+            if (pendingQueue.length === 0 && currentPending === null) {
+              pendingQueue = [...pending];
+              showNextQuestion();
+            }
+          }
+
+          if (!paused && currentPending !== null) {
+            // Bot resumed — hide input bar
+            hideConsoleInput();
+          }
+
+          if (!running && pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+          }
+        })
+        .catch(() => {});
+    }
+
+    // =====================
+    // Console Input Logic
+    // step: 'want_answer' | 'type_answer' | 'ask_linked'
+    // =====================
+    let _consoleStep = null;   // current step
+    let _answers = {};         // collected answers
+
+    // _consoleStep:
+    //   'want_answer'  → ถามข้อแรก: ต้องการตอบไหม? y/n
+    //   'ask_linked'   → ถามข้อ 2+: สัมพันธ์กับข้อก่อนไหม? y/n  (ก่อนพิมพ์คำตอบ)
+    //   'type_answer'  → พิมพ์คำตอบ
+    let _isLinkedDecision = false;  // เก็บผล ask_linked ชั่วคราว
+
+    function showNextQuestion() {
+      if (pendingQueue.length === 0) {
+        flushAnswers();
+        return;
+      }
+      currentPending = pendingQueue.shift();
+
+      appendLog(``, 'log-divider');
+      appendLog(`================================================================================`, 'log-divider2');
+      // has_previous มาจาก bot_service (รู้ว่ามีข้อเขียนก่อนหน้าข้ามหน้าได้)
+      const hasPrev = currentPending.has_previous;
+      appendLog(`✍️  [TEXT INPUT] เจอข้อพิมพ์ตอบ${hasPrev ? 'อีก' : ''}: ${currentPending.title}`, 'log-ask');
+
+      if (hasPrev) {
+        // ข้อ 2+ → ถามสัมพันธ์ก่อน (เหมือน original)
+        _consoleStep = 'ask_linked';
+        appendLog(`👉 ข้อนี้สัมพันธ์กับข้อที่แล้วไหม? (y/n) [Enter=ไม่]:`, 'log-ask');
+        setConsolePrompt(
+          `Q${currentPending.q_idx + 1}: ${currentPending.title}`,
+          `👉 ข้อนี้สัมพันธ์กับข้อที่แล้วไหม? (y/n) [Enter=ไม่]`,
+          'y / n'
+        );
+      } else {
+        // ข้อแรก → ถามว่าต้องการตอบไหม
+        _consoleStep = 'want_answer';
+        appendLog(`👉 ต้องการพิมพ์ตอบไหม? (y/n) [Enter=ข้าม]:`, 'log-ask');
+        setConsolePrompt(
+          `Q${currentPending.q_idx + 1}: ${currentPending.title}`,
+          `👉 ต้องการพิมพ์ตอบไหม? (y/n) [Enter=ข้าม]`,
+          'y / n'
+        );
+      }
+    }
+
+    function nextQ() {
+      currentPending = null;
+      hideConsoleInput();
+      if (pendingQueue.length > 0) setTimeout(showNextQuestion, 150);
+      else flushAnswers();
+    }
+
+    function handleConsoleEnter() {
+      const inp = document.getElementById('consoleInput');
+      const rawOrig = inp.value.trim();
+      const raw = rawOrig.toLowerCase();
+      inp.value = '';
+
+      // --- Step: want_answer (ข้อแรก) ---
+      if (_consoleStep === 'want_answer') {
+        appendLog(`❯ ${rawOrig || 'Enter'}`, 'log-input');
+        if (raw === 'y') {
+          _isLinkedDecision = false;  // ข้อแรกไม่มี linked
+          _consoleStep = 'type_answer';
+          appendLog(`⌨️  ใส่คำตอบ (คั่นด้วย +, เช่น 3+5+4):`, 'log-ask');
+          setConsolePrompt(
+            document.getElementById('consoleQuestion').textContent,
+            `⌨️  ใส่คำตอบ (คั่นด้วย +, เช่น 3+5+4)`,
+            'คำตอบ1+คำตอบ2+คำตอบ3'
+          );
+        } else {
+          appendLog(`⏭️  ข้ามข้อนี้...`, 'log-muted');
+          nextQ();
+        }
+
+      // --- Step: ask_linked (ข้อ 2+) ---
+      } else if (_consoleStep === 'ask_linked') {
+        appendLog(`❯ ${rawOrig || 'Enter'}`, 'log-input');
+        _isLinkedDecision = (raw === 'y');
+        _consoleStep = 'type_answer';
+        appendLog(`⌨️  ใส่คำตอบ (คั่นด้วย +, เช่น 3+5+4):`, 'log-ask');
+        setConsolePrompt(
+          document.getElementById('consoleQuestion').textContent,
+          `⌨️  ใส่คำตอบ (คั่นด้วย +, เช่น 3+5+4)`,
+          'คำตอบ1+คำตอบ2+คำตอบ3'
+        );
+
+      // --- Step: type_answer ---
+      } else if (_consoleStep === 'type_answer') {
+        appendLog(`❯ ${rawOrig || 'Enter'}`, 'log-input');
+        const key = `${currentPending.q_idx}_${currentPending.t_idx}`;
+
+        if (!rawOrig) {
+          appendLog(`⏭️  ข้ามข้อนี้...`, 'log-muted');
+          nextQ();
+          return;
+        }
+
+        const choices = rawOrig.split('+').map(x => x.trim()).filter(x => x);
+        _answers[key] = { choices, is_linked: _isLinkedDecision };
+
+        // แสดงผลเหมือน terminal เดิม
+        if (!_isLinkedDecision) {
+          const idx = Math.floor(Math.random() * choices.length);
+          appendLog(`✅ เลือกตอบ: ${choices[idx]} (ตำแหน่งที่ ${idx + 1})`, 'log-success');
+        } else {
+          // linked — แสดงตัวอย่าง (บอทจะ sync ตำแหน่งจริงตอน run)
+          appendLog(`✅ ตอบตามตำแหน่งเดิม (สัมพันธ์กับข้อก่อน)`, 'log-success');
+        }
+
+        nextQ();
+      }
+    }
+
+    function setConsolePrompt(questionText, hintText, placeholder) {
+      const bar = document.getElementById('consoleInputBar');
+      document.getElementById('consoleQuestion').textContent = questionText;
+      document.getElementById('consoleHint').textContent = hintText;
+      document.getElementById('consoleInput').placeholder = placeholder;
+      bar.style.display = 'block';
+      setTimeout(() => document.getElementById('consoleInput').focus(), 80);
+    }
+
+    function flushAnswers() {
+      appendLog(`▶️ ส่งคำตอบทั้งหมดแล้ว กำลังรันต่อ...`, 'log-info');
+      fetch('/api/bot/answer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answers: _answers })
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (!d.ok) appendLog('❌ ' + d.error, 'log-error');
+        Object.keys(_answers).forEach(k => delete _answers[k]);
+      })
+      .catch(e => appendLog('❌ ' + e, 'log-error'));
+    }
+
+    function hideConsoleInput() {
+      document.getElementById('consoleInputBar').style.display = 'none';
+      document.getElementById('consoleInput').value = '';
+      _consoleStep = null;
+    }
+
+    // =====================
+    // Bot controls
+    // =====================
+    function startBot() {
+      const config = getConfig();
+      if (!config.url) { alert('❗ กรุณาใส่ URL ของ Google Form'); return; }
+
+      logOffset = 0;
+      pendingQueue = [];
+      currentPending = null;
+      Object.keys(_answers).forEach(k => delete _answers[k]);
+
+      const terminal = document.getElementById('logTerminal');
+      terminal.innerHTML = '<div class="log-placeholder"><span class="placeholder-icon">▶</span><span>กำลังเริ่มบอท...</span></div>';
+      hideConsoleInput();
+
+      fetch('/api/bot/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config)
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.ok) {
+          appendLog('🚀 ' + data.message);
+          if (pollInterval) clearInterval(pollInterval);
+          pollInterval = setInterval(pollLogs, 1000);
+        } else {
+          appendLog('❌ ' + data.error);
+        }
+      })
+      .catch(e => appendLog('❌ Network error: ' + e));
+    }
+
+    function stopBot() {
+      fetch('/api/bot/stop', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => appendLog('🛑 ' + data.message));
+      hideConsoleInput();
+      pendingQueue = [];
+      currentPending = null;
+    }
+
+    function clearLogs() {
+      const terminal = document.getElementById('logTerminal');
+      terminal.innerHTML = '<div class="log-placeholder"><span class="placeholder-icon">⌬</span><span>รอคำสั่ง... กด START BOT เพื่อเริ่มต้น</span></div>';
+      logOffset = 0;
+    }
+
+    // Auto-poll on page load if running
+    fetch('/api/bot/status')
+      .then(r => r.json())
+      .then(data => {
+        if (data.running) {
+          if (pollInterval) clearInterval(pollInterval);
+          pollInterval = setInterval(pollLogs, 1000);
+        }
+      });
+  </script>
+
+</body>
+</html>
