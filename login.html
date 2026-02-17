@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>FormBot — Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="login-page">
+
+  <!-- Animated grid background -->
+  <div class="grid-bg"></div>
+  <div class="scan-line"></div>
+
+  <!-- Floating particles -->
+  <div class="particles">
+    <span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span>
+  </div>
+
+  <div class="login-wrapper">
+
+    <!-- Logo / Brand -->
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="6" y="6" width="36" height="36" rx="6" stroke="var(--accent)" stroke-width="2"/>
+          <path d="M14 18h20M14 24h14M14 30h8" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="36" cy="30" r="5" fill="var(--accent)" opacity="0.9"/>
+          <path d="M34 30l1.5 1.5L38 28" stroke="#0a0a0f" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>FORMBOT</h1>
+        <span>AUTOMATION SYSTEM v21</span>
+      </div>
+    </div>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-container">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">
+              <span class="flash-icon">
+                {% if category == 'success' %}✓{% elif category == 'error' %}✗{% else %}ℹ{% endif %}
+              </span>
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Login Card -->
+    <div class="login-card">
+      <div class="card-header">
+        <div class="header-dot"></div>
+        <div class="header-dot dot-yellow"></div>
+        <div class="header-dot dot-green"></div>
+        <span class="card-title">// เข้าสู่ระบบ</span>
+      </div>
+
+      <form method="POST" action="{{ url_for('login') }}" class="login-form" autocomplete="off">
+        <div class="form-group">
+          <label for="username">
+            <span class="label-prefix">$</span> USERNAME
+          </label>
+          <div class="input-wrapper">
+            <span class="input-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </span>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              placeholder="ชื่อผู้ใช้..."
+              required
+              autofocus
+            />
+            <span class="input-cursor"></span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">
+            <span class="label-prefix">$</span> PASSWORD
+          </label>
+          <div class="input-wrapper">
+            <span class="input-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </span>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="รหัสผ่าน..."
+              required
+            />
+          </div>
+        </div>
+
+        <button type="submit" class="btn-login">
+          <span class="btn-text">EXECUTE LOGIN</span>
+          <span class="btn-arrow">→</span>
+          <div class="btn-ripple"></div>
+        </button>
+      </form>
+
+      <div class="card-footer">
+        <span class="footer-text">Users loaded from <code>users.xlsx</code></span>
+      </div>
+    </div>
+
+    <!-- Status indicator -->
+    <div class="status-bar">
+      <span class="status-dot blink"></span>
+      <span>SYSTEM ONLINE</span>
+      <span class="divider">|</span>
+      <span>FormBot v21</span>
+    </div>
+
+  </div>
+
+</body>
+</html>
