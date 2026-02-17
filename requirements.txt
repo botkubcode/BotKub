@@ -1,1 +1,10 @@
+# Web Server
+flask>=3.0.0
 
+# Excel (อ่าน users.xlsx)
+pandas>=2.0.0
+openpyxl>=3.1.0
+
+# Bot / Browser Automation
+selenium>=4.15.0
+webdriver-manager>=4.0.0
