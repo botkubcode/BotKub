@@ -8,3 +8,5 @@ openpyxl>=3.1.0
 # Bot / Browser Automation
 selenium>=4.15.0
 webdriver-manager>=4.0.0
+
+gunicorn
